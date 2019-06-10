@@ -58,6 +58,10 @@ class Ui_MainWindow(object):
         self.result.setObjectName("result")
         self.myQListWidget = QtWidgets.QListWidget(self.centralwidget)
         self.myQListWidget.setGeometry(QtCore.QRect(700, 21, 280, 570)) 
+        '''
+            turn off lines of code below if you don't show list image
+        '''
+        ########### show some clothe ###############
         for i in range(10):
             path = "data_showing/"
             file_name = random.choice(os.listdir(path))
@@ -76,6 +80,8 @@ class Ui_MainWindow(object):
             myQListWidgetItem.setForeground(QtGui.QColor(255,255,255))
             self.myQListWidget.addItem(myQListWidgetItem)
             self.myQListWidget.setItemWidget(myQListWidgetItem, myQCustomQWidget)
+        
+        ###################################################################
         MainWindow.setCentralWidget(self.centralwidget)
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
