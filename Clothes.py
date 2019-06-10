@@ -14,8 +14,7 @@ class Clothes():
         self.type = ""
         colors = ['red','black','yellow','white','gray','blue','green']
         types = ['Tshirt','shirt','coat']
-        image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
-        image = cv2.resize(image, (96, 96))
+        image = cv2.resize(self.image, (96, 96))
         image = image.astype("float") / 255.0
         image = img_to_array(image)
         image = np.expand_dims(image, axis=0)

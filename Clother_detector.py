@@ -10,7 +10,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 from Clothes import *
 from Upper import *
+import pandas as pd
 import os, random
+import requests
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         self.Clothes = Clothes()
@@ -55,12 +58,17 @@ class Ui_MainWindow(object):
         self.result.setObjectName("result")
         self.myQListWidget = QtWidgets.QListWidget(self.centralwidget)
         self.myQListWidget.setGeometry(QtCore.QRect(700, 21, 280, 570)) 
-        for _ in range(100):
-            path = "C:/Users/Huynh Duc/Desktop/data/"
-            kind = random.choice(os.listdir(path))
-            color = random.choice(os.listdir(path + kind))
-            image_name = random.choice(os.listdir(path+kind+"/"+color))
-            icon = QtGui.QPixmap(path+kind+"/"+color+"/"+image_name)
+        for i in range(10):
+            path = "data_showing/"
+            file_name = random.choice(os.listdir(path))
+            data = pd.read_csv(path+file_name, sep="\t", index_col=0)
+            df_element = data.sample(n=1)
+            image_url = df_element['url'][0]
+            r = requests.get(image_url)
+            with open ('images/'+str(i)+'.jpg','wb') as f:
+                f.write(r.content)
+            ### download #########
+            icon = QtGui.QPixmap('images/'+str(i)+'.jpg')
             myQCustomQWidget = QCustomQWidget()
             myQCustomQWidget.setIcon(icon.scaled(190, 220))
             myQListWidgetItem = QtWidgets.QListWidgetItem(self.myQListWidget)
@@ -82,51 +90,61 @@ class Ui_MainWindow(object):
         options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self.centralwidget,"File", "","All Files (*);;image (*.png,*.jpg)", options=options)
         if fileName:
-            path = "C:/Users/Huynh Duc/Desktop/data/"
             self.fileName = fileName
-            image_show = QtGui.QPixmap(fileName)
-            image_show = image_show.scaled(480,579)
-            self.main_image.setPixmap(image_show)
-            self.Upper.set_image_by_filename(fileName)
-            self.Upper.predict()
-            image_process = self.Upper.image_detected
-            self.properties = []
-            for i in image_process:
-                img = cv2.resize(i,(160,160))
-                image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                height, width, _ = image.shape
-                bytesPerLine = 3 * width
-                qImage = QtGui.QImage(image.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
-                pixmap = QtGui.QPixmap.fromImage(qImage)
-                self.property_1.setPixmap(pixmap)
-                self.Clothes.set_image(i)
-                self.Clothes.predict()
-                if self.Clothes.type != "":
-                    self.properties.append([self.Clothes.type,self.Clothes.color])
-            if len(self.properties) != 0:
-                text = ""
-                self.myQListWidget.clear()
-                for item in range(len(self.properties)):
-                    if len(self.properties) ==1 :
-                        item_in_class = 100
-                    else:
-                        item_in_class = int(100 / len(self.properties))
-                    text += self.properties[item][0][0]+ ": " + str(self.properties[item][0][1])+ "\n" + self.properties[item][1][0]+ ": " + str(self.properties[item][1][1])+ "\n"
-                    folder = path + self.properties[item][0][0] +"/"+ self.properties[item][1][0] 
-                    for i in range(item_in_class):
-                        iamge_name = random.choice(os.listdir(folder))
-                        icon = QtGui.QPixmap(folder +"/"+iamge_name)
-                        myQCustomQWidget = QCustomQWidget()
-                        myQCustomQWidget.setIcon(icon.scaled(190, 220))
-                        myQListWidgetItem = QtWidgets.QListWidgetItem(self.myQListWidget)
-                        myQListWidgetItem.setSizeHint(myQCustomQWidget.sizeHint())
-                        myQListWidgetItem.setForeground(QtGui.QColor(255,255,255))
-                        self.myQListWidget.addItem(myQListWidgetItem)
-                        self.myQListWidget.setItemWidget(myQListWidgetItem, myQCustomQWidget)
-                self.result.setText(text)
-            else:
-                self.result.setText("None")
-            
+            self.show_image()
+            self.predict()
+            self.show_similar_clothes()
+
+    def show_image(self):
+        image_show = QtGui.QPixmap(self.fileName)
+        image_show = image_show.scaled(480,579)
+        self.main_image.setPixmap(image_show)
+    def predict(self):
+        print(self.fileName)
+        self.Upper.set_image_by_filename(self.fileName)
+        self.Upper.predict()
+        image_process = self.Upper.image_detected
+        self.properties = []
+        for i in image_process:
+            img = cv2.resize(i,(160,160))
+            image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            height, width, _ = image.shape
+            bytesPerLine = 3 * width
+            qImage = QtGui.QImage(image.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+            pixmap = QtGui.QPixmap.fromImage(qImage)
+            self.property_1.setPixmap(pixmap)
+            self.Clothes.set_image(i)
+            self.Clothes.predict()
+            if self.Clothes.type != "":
+                self.properties.append([self.Clothes.type,self.Clothes.color])
+
+    def show_similar_clothes(self):
+        if len(self.properties) != 0:
+            text=""
+            self.myQListWidget.clear()
+            for item in range(len(self.properties)):
+                text += self.properties[item][0][0]+ ": " + str(self.properties[item][0][1])+ "\n" + self.properties[item][1][0]+ ": " + str(self.properties[item][1][1])+ "\n"
+                fileName = "data_showing/"+self.properties[item][0][0] +"_"+ self.properties[item][1][0]+".csv"
+                data = pd.read_csv(fileName, sep="\t", index_col=0)
+                items_in_class = int(5/len(self.properties))
+                for i in range(items_in_class):
+                    df_element = data.sample(n=1)
+                    image_url = df_element['url'][0]
+                    r = requests.get(image_url)
+                    with open ('images/'+str(i)+'.jpg','wb') as f:
+                        f.write(r.content)
+                    ### download #########
+                    icon = QtGui.QPixmap('images/'+str(i)+'.jpg')
+                    myQCustomQWidget = QCustomQWidget()
+                    myQCustomQWidget.setIcon(icon.scaled(190, 220))
+                    myQListWidgetItem = QtWidgets.QListWidgetItem(self.myQListWidget)
+                    myQListWidgetItem.setSizeHint(myQCustomQWidget.sizeHint())
+                    myQListWidgetItem.setForeground(QtGui.QColor(255,255,255))
+                    self.myQListWidget.addItem(myQListWidgetItem)
+                    self.myQListWidget.setItemWidget(myQListWidgetItem, myQCustomQWidget)
+            self.result.setText(text)
+        else:
+            self.result.setText("Don't have any clothes in image")
 
 class QCustomQWidget (QtWidgets.QWidget):
     def __init__ (self, parent = None):
