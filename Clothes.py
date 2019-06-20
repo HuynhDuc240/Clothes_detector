@@ -12,7 +12,7 @@ class Clothes():
     def predict(self):
         self.color = ""
         self.type = ""
-        colors = ['red','black','yellow','white','gray','blue','green']
+        # colors = ['red','black','yellow','white','gray','blue','green']
         types = ['Tshirt','shirt','coat']
         image = cv2.resize(self.image, (96, 96))
         image = image.astype("float") / 255.0
@@ -29,15 +29,8 @@ class Clothes():
         else:
             color = [mlb.classes_[idxs[1]],round(proba[idxs[1]] * 100,2)]
             type_ = [mlb.classes_[idxs[0]],round(proba[idxs[0]] * 100,2)]
-        if color[0] in colors and type_[0] in types:
-            if color == 'red':
-                color == 'blue'
-            elif color == 'blue':
-                color == 'yellow'
-            elif color == 'yellow':
-                color == 'blue'
-            self.color = color
-            self.type = type_
+        self.color = color
+        self.type = type_
 
 
     def set_image_by_filename(self, fileName):
@@ -45,13 +38,3 @@ class Clothes():
         self.image = image
     def set_image(self, image):
         self.image = image
-# if __name__ == "__main__":
-#     clothes = Clothes()
-#     clothes.set_image_by_filename('Shirt_black_16.jpg')
-#     clothes.predict()
-#     print(clothes.color,clothes.type)
-#     pass
-
-
-
-

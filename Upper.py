@@ -30,11 +30,12 @@ class Upper():
         rate_x = self.image.shape[1]/img_width
         rate_y = self.image.shape[0]/img_height
         img = np.array(self.image)
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         img = cv2.resize(img, (img_height,img_width))
         img = img.reshape(1,img_width,img_height,3)
         y_pred = self.model.predict(img)
         y_pred_decoded = decode_detections(y_pred,
-                                   confidence_thresh=0.9,
+                                   confidence_thresh=0.5,
                                    iou_threshold=0.45,
                                    top_k=200,
                                    normalize_coords=normalize_coords,
@@ -42,12 +43,19 @@ class Upper():
                                    img_width=img_width)
         i=0
         for box in y_pred_decoded[i]:
-            if box[1] < 0.9:
-                continue
+            print(box)
             xmin = int(box[-4] * rate_y)
+            if xmin < 0:
+                xmin = 0
             ymin = int(box[-3] * rate_x)
+            if ymin < 0:
+                ymin = 0
             xmax = int(box[-2] * rate_y)
+            if xmax < 0:
+                xmax = 0
             ymax = int(box[-1] * rate_x)
+            if ymax < 0:
+                ymax = 0
             image = self.image[ymin:ymax,xmin:xmax,:]
             self.image_detected.append(image)
     def set_image_by_filename(self, fileName):
@@ -55,12 +63,11 @@ class Upper():
         self.image = image
     def set_image(self, image):
         self.image = image
-
+    def clear(self):
+        self.image = None
+        self.image_detected = []
 # if __name__ == "__main__":
 #     upper = Upper()
-#     upper.set_image_by_filename('Shirt_black_19.jpg')
-#     upper.predict()
-#     for i in upper.image_detected:
-#         cv2.imshow("image",i)
-#         cv2.waitKey()
+#     upper.set_image_by_filename('images/person0.jpg')
+#     upper.predict
 #     pass
