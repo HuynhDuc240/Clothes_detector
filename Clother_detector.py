@@ -55,7 +55,7 @@ class Ui_MainWindow(object):
         # self.property_3.setPixmap(image_not_found)
         # self.property_3.setObjectName("property_3")
         self.result = QtWidgets.QLabel(self.centralwidget)
-        self.result.setGeometry(QtCore.QRect(480, 503, 160, 100))
+        self.result.setGeometry(QtCore.QRect(480, 480, 160, 100))
         self.result.setFont(font)
         self.result.setObjectName("result")
         self.List_image_processing = QtWidgets.QListWidget(self.centralwidget)
@@ -227,7 +227,7 @@ class QCustomQWidget (QtWidgets.QWidget):
     def __init__ (self, parent = None):
         super(QCustomQWidget, self).__init__(parent)
         font = QtGui.QFont()
-        font.setPointSize(10)
+        font.setPointSize(5)
         self.textQVBoxLayout = QtWidgets.QVBoxLayout()
         self.textUpQLabel    = QtWidgets.QLabel()
         self.textDownQLabel  = QtWidgets.QLabel()
